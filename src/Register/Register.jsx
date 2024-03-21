@@ -6,7 +6,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { updateProfile } from "firebase/auth";
 
 const Register = () => {
-    const {createUser} = useContext(AuthContext);
+    const { createUser } = useContext(AuthContext);
     const [showPassword, setShowPassword] = useState(false);
     const [registerError, setRegisterError] = useState('');
     const [success, setSuccess] = useState('');
@@ -47,22 +47,41 @@ const Register = () => {
         }
 
         createUser(email, password)
-        .then(result => {
-          console.log(result);
-            setSuccess('User Create SuccessFully')
+            .then(result => {
+                console.log(result);
+                setSuccess('User Create SuccessFully')
 
-            updateProfile(result.user, {
-                displayName: name,
-                photoURL: photo
+
+                updateProfile(result.user, {
+                    displayName: name,
+                    photoURL: photo
+                })
+                    .then(() => {
+                        if (result.user.displayName) {
+
+                            const photo = result.user?.photoURL || null;
+                            const metadata = result.user.metadata;
+                            const name = result.user.displayName;
+                            const users = { name, email, photo, metadata };
+                            
+                            fetch(`http://localhost:5000/user`, {
+                                method: 'POST',
+                                headers: {
+                                    'content-type': 'application/json'
+                                },
+                                body: JSON.stringify(users)
+                            })
+                                .then(res => res.json())
+                                .then(error => {
+                                    console.log(error);
+                                })
+                        }
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    })
             })
-            .then(() => {
-                console.log('update Profile Name or Photo');
-            })
-            .catch(error => {
-                console.log(error);
-            })
-        })
-        .catch(error => console.log(error))
+            .catch(error => console.log(error))
     }
     return (
         <div>
